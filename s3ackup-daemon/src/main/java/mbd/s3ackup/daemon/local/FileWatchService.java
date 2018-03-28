@@ -14,6 +14,7 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -21,6 +22,8 @@ import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.machinezoo.noexception.Exceptions;
 
 public class FileWatchService implements Runnable {
 
@@ -97,16 +100,30 @@ public class FileWatchService implements Runnable {
 	 * be part of the event
 	 */
 	private void saveAllChildren(Path fullPath) throws IOException {
+		List<Path> files = new ArrayList<>(1);
+
 		if (Files.isDirectory(fullPath)) {
 			Files.walkFileTree(fullPath, new SimpleFileVisitor<Path>() {
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-					saveFunction.accept(file);
+					files.add(file);
 					return FileVisitResult.CONTINUE;
 				}
 			});
 		}
-		saveFunction.accept(fullPath);
+		else {
+			files.add(fullPath);
+		}
+
+		files.forEach(Exceptions.sneak().consumer(p -> {
+			if (Files.isHidden(p)) {
+				log.warn("ignoring hidden file:{}", p);
+			}
+			else {
+				saveFunction.accept(p);
+			}
+		}));
+
 	}
 
 	public class RegisterDirectoriesVisitor extends SimpleFileVisitor<Path> {
