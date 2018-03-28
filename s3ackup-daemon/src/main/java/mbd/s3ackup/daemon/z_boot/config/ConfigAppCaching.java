@@ -59,7 +59,7 @@ public class ConfigAppCaching extends CachingConfigurerSupport {
 		};
 	}
 
-	@Scheduled(fixedDelay = 10 * 1000)
+	@Scheduled(fixedDelay = 60 * 1000)
 	public void printCandleCacheStats() {
 		logger.info("default cache size[{}] stats[{}]", defaultCache.estimatedSize(), defaultCache.stats());
 	}
