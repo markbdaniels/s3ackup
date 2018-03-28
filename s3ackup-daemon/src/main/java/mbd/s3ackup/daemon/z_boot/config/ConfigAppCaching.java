@@ -1,20 +1,21 @@
 package mbd.s3ackup.daemon.z_boot.config;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.concurrent.ConcurrentMapCache;
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.cache.interceptor.KeyGenerator;
-import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 /**
  * Application caching
@@ -28,10 +29,17 @@ public class ConfigAppCaching extends CachingConfigurerSupport {
 
 	private static final Logger logger = LoggerFactory.getLogger(ConfigAppCaching.class);
 
+	public static final String DEFAULT_CACHE = "default";
+	private static final Cache<Object, Object> defaultCache = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).maximumSize(1000).recordStats().build();
+
 	@Bean
 	public CacheManager cacheManager() {
-		SimpleCacheManager cacheManager = new SimpleCacheManager();
-		cacheManager.setCaches(Arrays.asList(new ConcurrentMapCache("default")));
+		CaffeineCacheManager cacheManager = new CaffeineCacheManager(DEFAULT_CACHE) {
+			@Override
+			protected com.github.benmanes.caffeine.cache.Cache<Object, Object> createNativeCaffeineCache(String name) {
+				return defaultCache;
+			}
+		};
 		return cacheManager;
 	}
 
@@ -51,9 +59,8 @@ public class ConfigAppCaching extends CachingConfigurerSupport {
 		};
 	}
 
-	@Scheduled(fixedDelay = 1000 * 60 * 60)
-	@CacheEvict(value = "default", allEntries = true)
-	public void clearCacheDefault() {
-		logger.debug("Evicting 'default' cache");
+	@Scheduled(fixedDelay = 10 * 1000)
+	public void printCandleCacheStats() {
+		logger.info("default cache size[{}] stats[{}]", defaultCache.estimatedSize(), defaultCache.stats());
 	}
 }

@@ -9,6 +9,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import mbd.s3ackup.daemon.cloud.CloudFile.StorageType;
+import mbd.s3ackup.daemon.z_boot.config.ConfigAppCaching;
 
 @Service
 public class CachedCloudStorage implements CloudStorage {
@@ -17,13 +18,13 @@ public class CachedCloudStorage implements CloudStorage {
 	private CloudStorage cloudStorage;
 
 	@Override
-	@Cacheable(value = "default", sync = false)
+	@Cacheable(value = ConfigAppCaching.DEFAULT_CACHE, sync = false)
 	public List<CloudRoot> listRootDirectories() {
 		return cloudStorage.listRootDirectories();
 	}
 
 	@Override
-	@Cacheable(value = "default", sync = false)
+	@Cacheable(value = ConfigAppCaching.DEFAULT_CACHE, sync = false)
 	public List<CloudPath> listFiles(CloudDirectory prefix) {
 		return cloudStorage.listFiles(prefix);
 	}
@@ -34,13 +35,13 @@ public class CachedCloudStorage implements CloudStorage {
 	}
 
 	@Override
-	@Cacheable(value = "default", sync = false)
+	@Cacheable(value = ConfigAppCaching.DEFAULT_CACHE, sync = false)
 	public List<CloudDirectory> listDirectoriesRecursive(CloudDirectory prefix) {
 		return cloudStorage.listDirectoriesRecursive(prefix);
 	}
 
 	@Override
-	@Cacheable(value = "default", sync = false)
+	@Cacheable(value = ConfigAppCaching.DEFAULT_CACHE, sync = false)
 	public CloudDirectoryAttributes getDirectoryAttributes(CloudDirectory prefix, boolean forceCalculatable)
 			throws NotCalculatableException {
 		return cloudStorage.getDirectoryAttributes(prefix, forceCalculatable);
@@ -61,7 +62,7 @@ public class CachedCloudStorage implements CloudStorage {
 		cloudStorage.deleteFile(cloudFile);
 	}
 
-	@CacheEvict(value = "default", allEntries = true)
+	@CacheEvict(value = ConfigAppCaching.DEFAULT_CACHE, allEntries = true)
 	public boolean clearCache() {
 		return true;
 	}
