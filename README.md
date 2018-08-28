@@ -55,7 +55,7 @@ mvn clean install -Dskip.webpack=false -DskipTests
 Change POM version of all modules
 
 ```
-mvn versions:set versions:commit -DnewVersion=1.0.0 
+mvn versions:set versions:commit -DnewVersion=1.2.0 
 
 ```
 
