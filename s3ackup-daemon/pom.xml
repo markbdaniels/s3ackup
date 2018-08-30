@@ -76,12 +76,6 @@
 			<artifactId>noexception</artifactId>
 			<version>1.2.0</version>
 		</dependency>
-		<dependency>
-			<groupId>net.jodah</groupId>
-			<artifactId>expiringmap</artifactId>
-			<version>0.5.8</version>
-		</dependency>
-
 	</dependencies>
 
 
@@ -135,6 +129,7 @@
 							<goal>webpack</goal>
 						</goals>
 						<configuration>
+							<arguments>-p</arguments>
 						</configuration>
 					</execution>
 				</executions>

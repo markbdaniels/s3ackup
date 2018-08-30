@@ -211,7 +211,7 @@ class ObjectList extends Component {
   customSizeFormat(cell, row) {
     let isFile = row.type === 'File';
     if (isFile) {
-      const prettyBytes = require('pretty-bytes');
+      const prettyBytes = require('pretty-byte');
       return prettyBytes(cell);
     } else {
       return <DirSize row={row}/>

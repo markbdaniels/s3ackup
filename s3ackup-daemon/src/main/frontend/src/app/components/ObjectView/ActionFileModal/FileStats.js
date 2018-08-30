@@ -21,7 +21,7 @@ class FileStats extends Component {
         let objText = stats.count > 1
           ? "objects"
           : "object";
-        const prettyBytes = require('pretty-bytes');
+        const prettyBytes = require('pretty-byte');
         let sizePretty = prettyBytes(stats.size);
         out = <span>{stats.count} {' '}{objText}
           - {sizePretty}</span>

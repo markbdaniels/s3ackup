@@ -15,7 +15,7 @@ class DirSize extends Component {
       let dirStats = this.props.directoryStats[this.props.row.path];
       if (dirStats) {
         if (dirStats.calculatable) {
-          const prettyBytes = require('pretty-bytes');
+          const prettyBytes = require('pretty-byte');
           out = prettyBytes(dirStats.size);
         } else {
           out = "---";

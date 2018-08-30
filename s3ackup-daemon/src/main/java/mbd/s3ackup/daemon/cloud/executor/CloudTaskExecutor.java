@@ -22,10 +22,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 import mbd.s3ackup.daemon.cloud.CachedCloudStorage;
 import mbd.s3ackup.daemon.cloud.executor.CloudEventTask.Progress;
 import mbd.s3ackup.daemon.cloud.executor.CloudEventTaskKey.CloudAction;
-import net.jodah.expiringmap.ExpiringMap;
 
 @Service
 public class CloudTaskExecutor {
@@ -42,15 +44,14 @@ public class CloudTaskExecutor {
 	@Autowired
 	private CachedCloudStorage cloudStorage;
 
-	private AtomicInteger counter = new AtomicInteger(0);
-	private Map<Integer, CloudEventTask> processingTasks = new ConcurrentHashMap<>();
-	private Map<Integer, CloudEventTask> completedTasks = ExpiringMap.builder().expiration(10, TimeUnit.SECONDS)
-			.build();
+	private final AtomicInteger counter = new AtomicInteger(0);
+	private final Map<Integer, CloudEventTask> processingTasks = new ConcurrentHashMap<>();
+	private final Cache<Integer, CloudEventTask> completedTasks = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.SECONDS).build();
 
 	public Set<CloudEventTask> getProcessingTaskIdSet() {
 		Set<CloudEventTask> out = new HashSet<>();
 		out.addAll(processingTasks.values());
-		out.addAll(completedTasks.values());
+		out.addAll(completedTasks.asMap().values());
 		return out;
 	}
 
@@ -144,8 +145,7 @@ public class CloudTaskExecutor {
 	 * they occurred (500 ms)
 	 */
 	private Map<String, CloudEventTask> uploadProcessingMap = new ConcurrentHashMap<>();
-	private Map<String, CloudEventTask> uploadProcessingMapWithExpire = ExpiringMap.builder().maxSize(500)
-			.expiration(2, TimeUnit.SECONDS).build();
+	private final Cache<String, CloudEventTask> uploadProcessingMapWithExpire = Caffeine.newBuilder().expireAfterWrite(2, TimeUnit.SECONDS).maximumSize(500).build();
 
 	private void notifyObserverOfDownload(CloudEventTask task) {
 		uploadProcessingMap.put(task.getLocalPath(), task);
@@ -159,8 +159,7 @@ public class CloudTaskExecutor {
 
 	private boolean isEventValid(CloudEventTask task) {
 		if (CloudAction.UPLOAD.equals(task.getCloudAction())) {
-			return !(uploadProcessingMap.containsKey(task.getLocalPath())
-					|| uploadProcessingMapWithExpire.containsKey(task.getLocalPath()));
+			return !(uploadProcessingMap.containsKey(task.getLocalPath()) || uploadProcessingMapWithExpire.getIfPresent(task.getLocalPath()) != null);
 		}
 		return true;
 	}
