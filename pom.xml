@@ -2,14 +2,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>mbd-labs</groupId>
 	<artifactId>s3ackup</artifactId>
-	<version>1.0.0</version>
+	<version>1.2.0</version>
 	<name>s3ackup</name>
 	<packaging>pom</packaging>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.0.0.RELEASE</version>
+		<version>2.0.4.RELEASE</version>
 	</parent>
 
 	<modules>
